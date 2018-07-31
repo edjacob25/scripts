@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import praw
+
+reddit = praw.Reddit('bot1', user_agent='organizer by /u/jbrr25')
+print(reddit.user.me())
+
+for comment in reddit.user.me().comments.new(limit=None):
+    if ("love" in comment.body):
+        print("\n")
+        print("{} - {}".format(comment.submission.subreddit, comment.submission.title))
+        print(comment.body)
+        print("--------------------------------------------")
