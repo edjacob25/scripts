@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import praw
 
 reddit = praw.Reddit('bot1', user_agent='organizer by /u/jbrr25')
