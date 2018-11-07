@@ -1,3 +1,5 @@
 .vscode
 praw.ini
 twitter.json
+.idea
+*.db
