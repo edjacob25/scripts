@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+import praw
+import argparse
+
+parser = argparse.ArgumentParser(description="Downloads the upvoted post of the specified subreddit")
+parser.add_argument('subreddit') 
+args = parser.parse_args()
+
+subreddit = args.subreddit
+
+reddit = praw.Reddit('bot1', user_agent='organizer by /u/jbrr25')
+print(reddit.user.me())
+
+upvoted = reddit.user.me().upvoted(limit=None)
+with open("{}.txt".format(subreddit), "w") as f:
+    for post in upvoted:
+        if post.subreddit == subreddit:
+            f.write("{} - {} - https://www.reddit.com{}\n".format(post.title ,post.url, post.permalink))
