@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+import requests
+from selenium import webdriver
+
+r = requests.post("https://www.reddit.com/api/v1/access_token",
+    data={"grant_type":"https://oauth.reddit.com/grants/installed_client", "device_id": "DO_NOT_TRACK_THIS_DEVICE"},
+    auth=("ZJKlJzbFxkGauA", ""), 
+    headers={'User-agent': 'Muzei for reddit 0.1'})
+
+token = r.json()['access_token']
+
+r2 = requests.get("https://api.reddit.com/r/rarepuppers/top?t=day&limit=1", 
+    headers={'User-agent': 'Muzei for reddit 0.1', "Authentication": "bearer {}".format(token)})
+
+j = r2.json()
+
+link = j["data"]["children"][1]["data"]["url"]
+
+options = webdriver.ChromeOptions()
+options.add_argument('window-size=1200x800')
+#options.add_argument('headless')
+
+driver = webdriver.Chrome(chrome_options=options, executable_path="/mnt/c/ProgramData/chocolatey/bin/chromedriver.exe")
+
+driver.get('https://web.whatsapp.com')
+
+driver.implicitly_wait(10)
+
+conversation = driver.find_element_by_xpath("//span[contains(.,'Strawberry')]")
+conversation.click()
+
+txt_box = driver.find_element_by_css_selector("._2S1VP")
+txt_box.click()
+txt_box.send_keys("Hola, un perrito: {}".format(link))
+
+driver.implicitly_wait(5)
+
+btn = driver.find_element_by_css_selector("._35EW6")
+btn.click()
+
+driver.close()
+driver.quit()
