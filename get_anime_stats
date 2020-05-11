@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import pandas as pd
+import requests
+import time
+from collections import Counter
+from typing import List
+
+
+def get_animes() -> List[str]:
+    animes = []
+    with open("animes", "r") as f:
+        for line in f:
+            if not line.startswith("#"):
+                animes.append(line.strip())
+    return animes
+
+
+base_url = "https://api.jikan.moe/v3"
+
+animes = get_animes()
+
+cols = ["Original Name", "Name", "Genres"]
+c = Counter()
+df = pd.DataFrame(columns=cols)
+
+max_str_length = 0
+for anime in animes:
+    message = f"Getting info for: {anime}"
+    if len(message) > max_str_length:
+        max_str_length = len(message)
+    message = message.ljust(max_str_length)
+    print(message, end="\r")
+    r = requests.get(f"{base_url}/search/anime", params={"q": anime, "limit": "1"})
+    id = r.json()["results"][0]["mal_id"]
+    r2 = requests.get(f"{base_url}/anime/{id}")
+    c.update([x["name"] for x in r2.json()["genres"]])
+    s = pd.Series(
+        data=[r2.json()["title"], r2.json()["title_english"], ", ".join([x["name"] for x in r2.json()["genres"]])],
+        index=cols,
+    )
+    df = df.append(s, ignore_index=True)
+    time.sleep(2)
+
+print(" " * max_str_length, end="\r")
+
+print(df)
+
+print(c)
