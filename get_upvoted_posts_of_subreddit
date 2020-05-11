@@ -2,7 +2,7 @@
 import praw
 import argparse
 
-parser = argparse.ArgumentParser(description="Downloads the upvoted post of the specified subreddit")
+parser = argparse.ArgumentParser(description="Downloads the upvoted posts of the specified subreddit")
 parser.add_argument('subreddit') 
 args = parser.parse_args()
 
