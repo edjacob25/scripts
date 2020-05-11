@@ -1,0 +1,5 @@
+pandas
+peewee
+praw
+python-twitter
+requests
