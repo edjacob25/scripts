@@ -1,5 +1,6 @@
-pandas
-peewee
-praw
+pandas>=1.0.5
+peewee>=3.13.3
+praw>=7.0.0
 python-twitter
-requests
+requests>=2.24.0
+python-dateutil>=2.8.1
