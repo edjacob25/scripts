@@ -22,7 +22,8 @@ animes = get_animes()
 
 cols = ["Original Name", "Name", "Genres"]
 c = Counter()
-df = pd.DataFrame(columns=cols)
+
+data = []
 
 max_str_length = 0
 for anime in animes:
@@ -31,18 +32,17 @@ for anime in animes:
         max_str_length = len(message)
     message = message.ljust(max_str_length)
     print(message, end="\r")
+
     r = requests.get(f"{base_url}/search/anime", params={"q": anime, "limit": "1"})
     id = r.json()["results"][0]["mal_id"]
     r2 = requests.get(f"{base_url}/anime/{id}")
     c.update([x["name"] for x in r2.json()["genres"]])
-    s = pd.Series(
-        data=[r2.json()["title"], r2.json()["title_english"], ", ".join([x["name"] for x in r2.json()["genres"]])],
-        index=cols,
-    )
-    df = df.append(s, ignore_index=True)
+    s = [r2.json()["title"], r2.json()["title_english"], ", ".join([x["name"] for x in r2.json()["genres"]])]
+    data.append(s)
     time.sleep(2)
 
 print(" " * max_str_length, end="\r")
+df = pd.DataFrame(columns=cols, data=data)
 
 print(df)
 
