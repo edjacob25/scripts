@@ -20,7 +20,7 @@ def get_animes() -> List[str]:
     return animes
 
 
-base_url = "https://api.jikan.moe/v3"
+base_url = 'https://graphql.anilist.co'
 
 animes = get_animes()
 
@@ -28,6 +28,18 @@ cols = ["Original Name", "Name", "Genres"]
 c = Counter()
 
 data = []
+query = '''
+query ($name: String) {
+  Media (search: $name, type: ANIME) {
+    id
+    title {
+      english
+      romaji
+    }
+    genres
+  }
+}
+'''
 
 max_str_length = 0
 for anime in animes:
@@ -37,13 +49,14 @@ for anime in animes:
     message = message.ljust(max_str_length)
     print(message, end="\r")
 
-    r = requests.get(f"{base_url}/search/anime", params={"q": anime, "limit": "1"})
-    id = r.json()["results"][0]["mal_id"]
-    r2 = requests.get(f"{base_url}/anime/{id}")
-    c.update([x["name"] for x in r2.json()["genres"]])
-    s = [r2.json()["title"], r2.json()["title_english"], ", ".join([x["name"] for x in r2.json()["genres"]])]
+    variables = {"name": anime}
+
+    r = requests.post(base_url, json={'query': query, 'variables': variables})
+    res = r.json()["data"]["Media"]
+    s = [res["title"]["romaji"], res["title"]["english"], ", ".join([x for x in res["genres"]])]
+    c.update(res["genres"])
     data.append(s)
-    time.sleep(2)
+    time.sleep(0.7)
 
 print(" " * max_str_length, end="\r")
 df = pd.DataFrame(columns=cols, data=data)
