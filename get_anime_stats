@@ -19,48 +19,51 @@ def get_animes() -> List[str]:
                 animes.append(line.strip())
     return animes
 
+def main():
+    base_url = 'https://graphql.anilist.co'
 
-base_url = 'https://graphql.anilist.co'
+    animes = get_animes()
 
-animes = get_animes()
+    cols = ["Original Name", "Name", "Genres"]
+    c = Counter()
 
-cols = ["Original Name", "Name", "Genres"]
-c = Counter()
-
-data = []
-query = '''
-query ($name: String) {
-  Media (search: $name, type: ANIME) {
-    id
-    title {
-      english
-      romaji
+    data = []
+    query = '''
+    query ($name: String) {
+      Media (search: $name, type: ANIME) {
+        id
+        title {
+          english
+          romaji
+        }
+        genres
+      }
     }
-    genres
-  }
-}
-'''
+    '''
 
-max_str_length = 0
-for anime in animes:
-    message = f"Getting info for: {anime}"
-    if len(message) > max_str_length:
-        max_str_length = len(message)
-    message = message.ljust(max_str_length)
-    print(message, end="\r")
+    max_str_length = 0
+    for anime in animes:
+        message = f"Getting info for: {anime}"
+        if len(message) > max_str_length:
+            max_str_length = len(message)
+        message = message.ljust(max_str_length)
+        print(message, end="\r")
 
-    variables = {"name": anime}
+        variables = {"name": anime}
 
-    r = requests.post(base_url, json={'query': query, 'variables': variables})
-    res = r.json()["data"]["Media"]
-    s = [res["title"]["romaji"], res["title"]["english"], ", ".join([x for x in res["genres"]])]
-    c.update(res["genres"])
-    data.append(s)
-    time.sleep(0.7)
+        r = requests.post(base_url, json={'query': query, 'variables': variables})
+        res = r.json()["data"]["Media"]
+        s = [res["title"]["romaji"], res["title"]["english"], ", ".join([x for x in res["genres"]])]
+        c.update(res["genres"])
+        data.append(s)
+        time.sleep(0.7)
 
-print(" " * max_str_length, end="\r")
-df = pd.DataFrame(columns=cols, data=data)
+    print(" " * max_str_length, end="\r")
+    df = pd.DataFrame(columns=cols, data=data)
 
-print(df)
+    print(df)
 
-print(counter_str(c))
+    print(counter_str(c))
+
+if __name__ == '__main__':
+    main()

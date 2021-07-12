@@ -46,7 +46,9 @@ def parse_data(path: Path) -> pd.DataFrame:
     return conversation_data
 
 
-def analyze(conversation_data: pd.DataFrame, verbose: bool, timelapse=timedelta(hours=6)):
+def analyze(
+    conversation_data: pd.DataFrame, verbose: bool, timelapse=timedelta(hours=6)
+):
     last_timestamp: Optional[timedelta] = None
     last_sender = None
     enders = Counter()
@@ -68,7 +70,9 @@ def analyze(conversation_data: pd.DataFrame, verbose: bool, timelapse=timedelta(
                 enders.update([last_sender])
                 starters.update([user])
                 if verbose:
-                    print(f"{last_sender} send the last message and {user} responded until {time_passed} later")
+                    print(
+                        f"{last_sender} send the last message and {user} responded until {time_passed} later"
+                    )
         else:
             starters.update([user])
         last_timestamp = timestamp
@@ -81,8 +85,12 @@ def analyze(conversation_data: pd.DataFrame, verbose: bool, timelapse=timedelta(
 def main():
     parser = ArgumentParser()
     parser.add_argument("file", help="File of the Whatsapp conversation")
-    parser.add_argument("--hours", help="How many hours to consider when a conversation has finished", type=int,
-                        default=6)
+    parser.add_argument(
+        "--hours",
+        help="How many hours to consider when a conversation has finished",
+        type=int,
+        default=6,
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -104,5 +112,5 @@ def main():
     analyze(df, args.verbose, hours)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

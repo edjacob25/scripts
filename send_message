@@ -3,41 +3,51 @@
 import requests
 from selenium import webdriver
 
-r = requests.post("https://www.reddit.com/api/v1/access_token",
-    data={"grant_type":"https://oauth.reddit.com/grants/installed_client", "device_id": "DO_NOT_TRACK_THIS_DEVICE"},
-    auth=("ZJKlJzbFxkGauA", ""), 
-    headers={'User-agent': 'Muzei for reddit 0.1'})
 
-token = r.json()['access_token']
+def get_reddit_link() -> str:
+    r = requests.post("https://www.reddit.com/api/v1/access_token",
+                      data={"grant_type": "https://oauth.reddit.com/grants/installed_client",
+                            "device_id": "DO_NOT_TRACK_THIS_DEVICE"},
+                      auth=("ZJKlJzbFxkGauA", ""),
+                      headers={'User-agent': 'Muzei for reddit 0.1'})
 
-r2 = requests.get("https://api.reddit.com/r/rarepuppers/top?t=day&limit=1", 
-    headers={'User-agent': 'Muzei for reddit 0.1', "Authentication": "bearer {}".format(token)})
+    token = r.json()['access_token']
 
-j = r2.json()
+    r2 = requests.get("https://api.reddit.com/r/rarepuppers/top?t=day&limit=1",
+                      headers={'User-agent': 'Muzei for reddit 0.1', "Authentication": "bearer {}".format(token)})
 
-link = j["data"]["children"][1]["data"]["url"]
+    j = r2.json()
 
-options = webdriver.ChromeOptions()
-options.add_argument('window-size=1200x800')
-#options.add_argument('headless')
+    return j["data"]["children"][1]["data"]["url"]
 
-driver = webdriver.Chrome(chrome_options=options, executable_path="/mnt/c/ProgramData/chocolatey/bin/chromedriver.exe")
 
-driver.get('https://web.whatsapp.com')
+def main():
+    link = get_reddit_link()
+    options = webdriver.ChromeOptions()
+    options.add_argument('window-size=1200x800')
+    #options.add_argument('headless')
 
-driver.implicitly_wait(10)
+    driver = webdriver.Chrome(chrome_options=options, executable_path="/mnt/c/ProgramData/chocolatey/bin/chromedriver.exe")
 
-conversation = driver.find_element_by_xpath("//span[contains(.,'Strawberry')]")
-conversation.click()
+    driver.get('https://web.whatsapp.com')
 
-txt_box = driver.find_element_by_css_selector("._2S1VP")
-txt_box.click()
-txt_box.send_keys("Hola, un perrito: {}".format(link))
+    driver.implicitly_wait(10)
 
-driver.implicitly_wait(5)
+    conversation = driver.find_element_by_xpath("//span[contains(.,'Strawberry')]")
+    conversation.click()
 
-btn = driver.find_element_by_css_selector("._35EW6")
-btn.click()
+    txt_box = driver.find_element_by_css_selector("._2S1VP")
+    txt_box.click()
+    txt_box.send_keys(f"Hola, un perrito: {link}")
 
-driver.close()
-driver.quit()
+    driver.implicitly_wait(5)
+
+    btn = driver.find_element_by_css_selector("._35EW6")
+    btn.click()
+
+    driver.close()
+    driver.quit()
+
+
+if __name__ == '__main__':
+    main()

@@ -33,18 +33,8 @@ class EntityTag(BaseModel):
         primary_key = CompositeKey("entity", "tag")
 
 
-reddit = praw.Reddit("bot1", user_agent="organizer by /u/jbrr25 0.1")
-
-""" submission = reddit.submission(id='39zje0')
-print(submission.title) # to make it non-lazy
-pprint.pprint(vars(submission))
-
-comment = reddit.comment(id='cthwcdf')
-print(comment.body) # to make it non-lazy
-pprint.pprint(vars(comment)) """
-
-
 def save_to_sql():
+    reddit = praw.Reddit("bot1", user_agent="organizer by /u/jbrr25 0.1")
     ls = []
     db.connect()
     db.get_tables()
@@ -113,7 +103,7 @@ def save_to_sql():
     pprint.pprint(ls)
 
 
-def assing_tag(entity):
+def assing_tag(entity: SavedEntity):
     programming = [
         "r/programming",
         "r/learnprogramming",
@@ -162,4 +152,5 @@ def assing_tag(entity):
         EntityTag.create(entity=entity, tag=knowledge_tag)
 
 
-save_to_sql()
+if __name__ == "__main__":
+    save_to_sql()
