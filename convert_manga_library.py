@@ -1,11 +1,15 @@
 import argparse
 from pathlib import Path
+from typing import Dict
 
 
 def main():
     parser = argparse.ArgumentParser(description="Converts a library exported from tachiyomi to a more compact format")
     parser.add_argument("-s", "--source", help="Directory which contains the library")
     parser.add_argument("-o", "--output", help="Output directory, the script will skip already converted chapters")
+    parser.add_argument(
+        "-c", "--config-file", help="Config file with name equivalences for the different series", required=False
+    )
 
     args = parser.parse_args()
 
@@ -24,6 +28,8 @@ def main():
     if not output_dir.exists():
         output_dir.mkdir()
 
+    name_map = {} if args.config_file is None else create_name_equivs(Path(args.config_file))
+
     for source in tachi_dir.iterdir():
         if source.is_file():
             continue
@@ -33,7 +39,9 @@ def main():
             if manga.is_file():
                 continue
 
-            manga_out = output_dir / manga.name
+            manga_name = name_map[manga.name] if manga.name in name_map else manga.name
+
+            manga_out = output_dir / manga_name
 
             for chapter in manga.iterdir():
 
@@ -44,6 +52,27 @@ def main():
 
                 command = ["comic-enc", "encode", "--compress-webp", "-o", f'"{chapter_out}"', f'"{chapter}"', "single"]
                 print(f"Running command {' '.join(command)}")
+
+
+def create_name_equivs(file: Path) -> Dict[str, str]:
+    name_map: Dict[str, str] = {}
+    rep = ""
+
+    if not file.exists() or file.is_dir():
+        print("Config file does not exists or is not valid, using no name equivalencies")
+        return name_map
+
+    for line in file.read_text().splitlines():
+        if line == "":
+            rep = ""
+            continue
+        if rep == "":
+            rep = line
+            name_map.update({rep: rep})
+            continue
+
+        name_map.update({line: rep})
+    return name_map
 
 
 if __name__ == "__main__":
