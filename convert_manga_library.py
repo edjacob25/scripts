@@ -1,6 +1,8 @@
 import argparse
+from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
+import requests
 import subprocess
 
 
@@ -22,6 +24,10 @@ def main():
         "--config-file",
         help="Config file with name equivalences for the different series",
         required=False,
+    )
+
+    parser.add_argument(
+        "-n", "--notify", help="Use ntfy to send a notification", action="store_true"
     )
 
     args = parser.parse_args()
@@ -47,6 +53,8 @@ def main():
         {} if args.config_file is None else create_name_equivs(Path(args.config_file))
     )
 
+    processed = 0
+    processed_list = []
     for source in tachi_dir.iterdir():
         if source.is_file():
             continue
@@ -73,12 +81,45 @@ def main():
                     "encode",
                     "--compress-webp",
                     "-o",
-                    chapter_out,
-                    chapter,
+                    str(chapter_out),
+                    str(chapter),
                     "single",
                 ]
                 print(" ".join(command))
-                subprocess.run(command)
+                completed = subprocess.run(command)
+                if completed.returncode == 0:
+                    processed += 1
+                    processed_list.append(f"{manga_name} | {chapter.name}")
+                else:
+                    chapter_out.with_suffix(".comic-enc-partial").unlink(True)
+
+    if args.notify:
+        send_notification(processed, processed_list)
+
+
+def send_notification(processed_number: int, processed_list: List[str]):
+    ntfy_path = Path.home() / ".config" / "ntfy.ini"
+    if not ntfy_path.exists():
+        print("There is not a ntfy config, skipping sending notifications")
+        return
+
+    conf = ConfigParser()
+    conf.read(ntfy_path)
+    try:
+        section = conf["manga_notif"]
+
+        headers = {
+            "Title": f"Processed {processed_number} new chapters",
+            "Tags": "heavy_check_mark",
+        }
+        r = requests.post(
+            f"{section['server']}/{section['channel']}",
+            data="\n".join(processed_list).encode('utf-8'),
+            headers=headers,
+            auth=(section["user"], section["pass"]),
+        )
+    except KeyError:
+        print("Missing config, skipping notif")
 
 
 def create_name_equivs(file: Path) -> Dict[str, str]:
