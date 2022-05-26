@@ -5,13 +5,23 @@ import subprocess
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Converts a library exported from tachiyomi to a more compact format")
-    parser.add_argument("-s", "--source", help="Directory which contains the library", required=True)
-    parser.add_argument(
-        "-o", "--output", help="Output directory, the script will skip already converted chapters", required=True
+    parser = argparse.ArgumentParser(
+        description="Converts a library exported from tachiyomi to a more compact format"
     )
     parser.add_argument(
-        "-c", "--config-file", help="Config file with name equivalences for the different series", required=False
+        "-s", "--source", help="Directory which contains the library", required=True
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output directory, the script will skip already converted chapters",
+        required=True,
+    )
+    parser.add_argument(
+        "-c",
+        "--config-file",
+        help="Config file with name equivalences for the different series",
+        required=False,
     )
 
     args = parser.parse_args()
@@ -25,13 +35,17 @@ def main():
     output_dir = Path(args.output)
 
     if output_dir.is_file():
-        print(f"The output directory {output_dir} does not exists or is not a directory")
+        print(
+            f"The output directory {output_dir} does not exists or is not a directory"
+        )
         exit(1)
 
     if not output_dir.exists():
         output_dir.mkdir()
 
-    name_map = {} if args.config_file is None else create_name_equivs(Path(args.config_file))
+    name_map = (
+        {} if args.config_file is None else create_name_equivs(Path(args.config_file))
+    )
 
     for source in tachi_dir.iterdir():
         if source.is_file():
@@ -72,7 +86,9 @@ def create_name_equivs(file: Path) -> Dict[str, str]:
     rep = ""
 
     if not file.exists() or file.is_dir():
-        print("Config file does not exists or is not valid, using no name equivalencies")
+        print(
+            "Config file does not exists or is not valid, using no name equivalencies"
+        )
         return name_map
 
     for line in file.read_text().splitlines():
