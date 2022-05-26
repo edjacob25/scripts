@@ -5,8 +5,10 @@ from typing import Dict
 
 def main():
     parser = argparse.ArgumentParser(description="Converts a library exported from tachiyomi to a more compact format")
-    parser.add_argument("-s", "--source", help="Directory which contains the library")
-    parser.add_argument("-o", "--output", help="Output directory, the script will skip already converted chapters")
+    parser.add_argument("-s", "--source", help="Directory which contains the library", required=True)
+    parser.add_argument(
+        "-o", "--output", help="Output directory, the script will skip already converted chapters", required=True
+    )
     parser.add_argument(
         "-c", "--config-file", help="Config file with name equivalences for the different series", required=False
     )
