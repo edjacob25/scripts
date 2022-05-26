@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from typing import Dict
+import subprocess
 
 
 def main():
@@ -44,16 +45,26 @@ def main():
             manga_name = name_map[manga.name] if manga.name in name_map else manga.name
 
             manga_out = output_dir / manga_name
+            if not manga_out.exists():
+                manga_out.mkdir()
 
             for chapter in manga.iterdir():
-
-                chapter_out = (manga_out / chapter.name).with_suffix(".cbz")
+                chapter_out = manga_out / f"{chapter.name}.cbz"
 
                 if chapter_out.exists():
                     continue
 
-                command = ["comic-enc", "encode", "--compress-webp", "-o", f'"{chapter_out}"', f'"{chapter}"', "single"]
-                print(f"Running command {' '.join(command)}")
+                command = [
+                    "comic-enc",
+                    "encode",
+                    "--compress-webp",
+                    "-o",
+                    chapter_out,
+                    chapter,
+                    "single",
+                ]
+                print(" ".join(command))
+                subprocess.run(command)
 
 
 def create_name_equivs(file: Path) -> Dict[str, str]:
