@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+
+import requests
+import json
+from argparse import ArgumentParser
+
+base_url = "https://graphql.anilist.co"
+
+
+def get_userid(username: str) -> int:
+    query = """
+    query ($name: String) {
+      User (name: $name) {
+        id
+      }
+    }
+    """
+    # Ge user id
+    variables = {"name": username}
+    r = requests.post(base_url, json={"query": query, "variables": variables})
+    res = r.json()
+    print(res)
+    return int(res["data"]["User"]["id"])
+
+def get_media_id(media_name: str) -> int:
+    query = """
+    query ($media_name: String) {
+      Page(page: 0, perPage: 10){
+        media (search: $media_name) {
+          id,
+          title {
+            romaji
+            english
+          },
+          type
+        }
+      } 
+    }
+    """
+    variables = {"media_name": media_name}
+    r = requests.post(base_url, json={"query": query, "variables": variables})
+    res = r.json()["data"]["Page"]["media"]
+    for i, option in enumerate(res):
+      title = option["title"]["english"] if option["title"]["english"] else option["title"]["romaji"]
+      print(f"{i} - {title} - {option['type']}")
+    print("Choose an option: ",end="")
+    choosed = input()
+    return int(res[int(choosed)]["id"])
+
+def get_data(user_id: int, page: int, media_id: int, save: bool = False):
+    query = """
+    query ($userId: Int, $page: Int, $mediaId: Int) {
+      Page(page: $page, perPage: 50) {
+          activities(userId: $userId, type: MANGA_LIST, mediaId: $mediaId, sort: ID) {
+            ... on ListActivity {
+              progress
+              media {
+                title {
+                  romaji
+                }
+              }
+              createdAt
+            }
+                            
+          }
+      }
+    }
+    """
+    # Ge user id
+    variables = {"userId": user_id, "page": page, "mediaId": media_id}
+    print(variables)
+    r = requests.post(base_url, json={"query": query, "variables": variables})
+    print(r.status_code)
+    print(r.json())
+    if save:
+        with open(f"activity_{user_id}_{page}.json", "w") as f:
+            json.dump(r.json(), f)
+
+
+def main():
+    parser = ArgumentParser()
+    
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-u", "--username")
+    group.add_argument("-i", "--id")
+    
+    parser.add_argument("-s", "--save", action="store_true")
+    parser.add_argument("-p", "--page", type=int, required=True)
+
+    media_group = parser.add_mutually_exclusive_group(required=True)
+    media_group.add_argument("-m", "--mediaId", type=int)
+    media_group.add_argument("-n", "--nameMedia")
+
+    args = parser.parse_args()
+
+    if args.id:
+        user_id = args.id
+    else:
+        user_id = get_userid(args.username)
+
+    if args.mediaId:
+        media_id = args.mediaId
+    else:
+        media_id = get_media_id(args.nameMedia)
+
+    get_data(user_id, args.page, media_id, args.save)
+
+
+if __name__ == "__main__":
+    main()
