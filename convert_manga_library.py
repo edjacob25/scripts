@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 from configparser import ConfigParser
 from pathlib import Path
@@ -114,7 +116,7 @@ def send_notification(processed_number: int, processed_list: List[str]):
         }
         r = requests.post(
             f"{section['server']}/{section['channel']}",
-            data="\n".join(processed_list).encode('utf-8'),
+            data="\n".join(processed_list).encode("utf-8"),
             headers=headers,
             auth=(section["user"], section["pass"]),
         )

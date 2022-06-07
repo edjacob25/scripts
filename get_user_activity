@@ -22,6 +22,7 @@ def get_userid(username: str) -> int:
     print(res)
     return int(res["data"]["User"]["id"])
 
+
 def get_media_id(media_name: str) -> int:
     query = """
     query ($media_name: String) {
@@ -41,28 +42,32 @@ def get_media_id(media_name: str) -> int:
     r = requests.post(base_url, json={"query": query, "variables": variables})
     res = r.json()["data"]["Page"]["media"]
     for i, option in enumerate(res):
-      title = option["title"]["english"] if option["title"]["english"] else option["title"]["romaji"]
-      print(f"{i} - {title} - {option['type']}")
-    print("Choose an option: ",end="")
+        title = (
+            option["title"]["english"]
+            if option["title"]["english"]
+            else option["title"]["romaji"]
+        )
+        print(f"{i} - {title} - {option['type']}")
+    print("Choose an option: ", end="")
     choosed = input()
     return int(res[int(choosed)]["id"])
+
 
 def get_data(user_id: int, page: int, media_id: int, save: bool = False):
     query = """
     query ($userId: Int, $page: Int, $mediaId: Int) {
       Page(page: $page, perPage: 50) {
-          activities(userId: $userId, type: MANGA_LIST, mediaId: $mediaId, sort: ID) {
-            ... on ListActivity {
-              progress
-              media {
-                title {
-                  romaji
-                }
+        activities(userId: $userId, type: MANGA_LIST, mediaId: $mediaId, sort: ID) {
+          ... on ListActivity {
+            progress
+            media {
+              title {
+                romaji
               }
-              createdAt
             }
-                            
+            createdAt
           }
+        }
       }
     }
     """
@@ -79,11 +84,11 @@ def get_data(user_id: int, page: int, media_id: int, save: bool = False):
 
 def main():
     parser = ArgumentParser()
-    
+
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-u", "--username")
     group.add_argument("-i", "--id")
-    
+
     parser.add_argument("-s", "--save", action="store_true")
     parser.add_argument("-p", "--page", type=int, required=True)
 

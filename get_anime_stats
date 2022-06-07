@@ -19,8 +19,9 @@ def get_animes() -> List[str]:
                 animes.append(line.strip())
     return animes
 
+
 def main():
-    base_url = 'https://graphql.anilist.co'
+    base_url = "https://graphql.anilist.co"
 
     animes = get_animes()
 
@@ -28,7 +29,7 @@ def main():
     c = Counter()
 
     data = []
-    query = '''
+    query = """
     query ($name: String) {
       Media (search: $name, type: ANIME) {
         id
@@ -39,7 +40,7 @@ def main():
         genres
       }
     }
-    '''
+    """
 
     max_str_length = 0
     for anime in animes:
@@ -51,9 +52,13 @@ def main():
 
         variables = {"name": anime}
 
-        r = requests.post(base_url, json={'query': query, 'variables': variables})
+        r = requests.post(base_url, json={"query": query, "variables": variables})
         res = r.json()["data"]["Media"]
-        s = [res["title"]["romaji"], res["title"]["english"], ", ".join([x for x in res["genres"]])]
+        s = [
+            res["title"]["romaji"],
+            res["title"]["english"],
+            ", ".join([x for x in res["genres"]]),
+        ]
         c.update(res["genres"])
         data.append(s)
         time.sleep(0.7)
@@ -65,5 +70,6 @@ def main():
 
     print(counter_str(c))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
