@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from datetime import datetime
 import requests
 import json
 from argparse import ArgumentParser
@@ -74,12 +75,15 @@ def get_data(user_id: int, page: int, media_id: int, save: bool = False):
     # Ge user id
     variables = {"userId": user_id, "page": page, "mediaId": media_id}
     print(variables)
-    r = requests.post(base_url, json={"query": query, "variables": variables})
-    print(r.status_code)
-    print(r.json())
+    response = requests.post(base_url, json={"query": query, "variables": variables})
+    result = response.json()["data"]["Page"]["activities"]
+    print(response.status_code)
+    for activity in result:
+        activity["createdAtHuman"] = str(datetime.fromtimestamp(activity["createdAt"]))
+    print(json.dumps(result, indent=2))
     if save:
         with open(f"activity_{user_id}_{page}.json", "w") as f:
-            json.dump(r.json(), f)
+            json.dump(result, f)
 
 
 def main():
