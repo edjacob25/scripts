@@ -3,7 +3,11 @@
 import requests
 import json
 from argparse import ArgumentParser
+from rich.console import Console
+from rich.table import Table
+from rich import print
 
+console = Console()
 base_url = "https://graphql.anilist.co"
 
 
@@ -36,6 +40,7 @@ def get_data(user_id: int, save: bool = False):
                     }
                     averageScore
                     meanScore
+                    format
                 }
             }
         }
@@ -48,18 +53,35 @@ def get_data(user_id: int, save: bool = False):
     print(r.status_code)
     res = r.json()["data"]["MediaListCollection"]["lists"][0]["entries"]
     res.sort(key=lambda e: e["media"]["averageScore"], reverse=True)
+    table = Table(header_style="bold green")
+    table.add_column("Title")
+    table.add_column("Average Score", justify="right")
+    table.add_column("Mean Score", justify="right")
+    table.add_column("Format", justify="right")
+    table.row_styles = ["blue", "red"]
 
     s = 0
+    s1 = 0
     for item in res:
         name = (
             item["media"]["title"]["romaji"]
             if item["media"]["title"]["english"] is None
             else item["media"]["title"]["english"]
         )
-        print(f"{name} - {item['media']['averageScore']}")
+        # print(f"{name} - {item['media']['averageScore']}")
+        table.add_row(
+            name,
+            f"{item['media']['averageScore']}",
+            f"{item['media']['meanScore']}",
+            item["media"]["format"],
+        )
         s += item["media"]["averageScore"]
+        s1 += item["media"]["meanScore"]
 
-    print(f"\nAvg: {s/len(res)}")
+    table.add_row("", "", "", "", end_section=True)
+    table.add_row("Avg", f"{s/len(res):.5f}", f"{s1/len(res):.5f}", f"{len(res)}")
+    console.print(table)
+    # print(f"\nAvg: {s/len(res)}")
     if save:
         with open(f"list_{user_id}.json", "w") as f:
             json.dump(res, f)

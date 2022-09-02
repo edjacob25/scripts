@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 import requests
 import subprocess
+from rich import print
 
 
 def main():
@@ -37,14 +38,16 @@ def main():
     tachi_dir = Path(args.source)
 
     if not tachi_dir.exists() or tachi_dir.is_file():
-        print(f"The directory {tachi_dir} does not exists or is not a directory")
+        print(
+            f"[red]Err[/]: The directory [green]{tachi_dir}[/] does not exists or is not a directory"
+        )
         exit(1)
 
     output_dir = Path(args.output)
 
     if output_dir.is_file():
         print(
-            f"The output directory {output_dir} does not exists or is not a directory"
+            f"[red]Err[/]: The output directory [green]{output_dir}[/] does not exists or is not a directory"
         )
         exit(1)
 
@@ -102,7 +105,9 @@ def main():
 def send_notification(processed_number: int, processed_list: List[str]):
     ntfy_path = Path.home() / ".config" / "ntfy.ini"
     if not ntfy_path.exists():
-        print("There is not a ntfy config, skipping sending notifications")
+        print(
+            "[yellow]Warn[/]: There is not a ntfy config, skipping sending notifications"
+        )
         return
 
     conf = ConfigParser()
@@ -121,7 +126,7 @@ def send_notification(processed_number: int, processed_list: List[str]):
             auth=(section["user"], section["pass"]),
         )
     except KeyError:
-        print("Missing config, skipping notif")
+        print("[yellow]Warn[/]: Missing config, skipping notif")
 
 
 def create_name_equivs(file: Path) -> Dict[str, str]:
@@ -130,7 +135,7 @@ def create_name_equivs(file: Path) -> Dict[str, str]:
 
     if not file.exists() or file.is_dir():
         print(
-            "Config file does not exists or is not valid, using no name equivalencies"
+            "[yellow]Warn[/]: Config file does not exists or is not valid, using no name equivalencies"
         )
         return name_map
 

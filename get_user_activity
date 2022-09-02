@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
 from datetime import datetime
+from typing import Dict
 import requests
 import json
 from argparse import ArgumentParser
+from rich.console import Console
+from rich.prompt import IntPrompt
+from rich.table import Table
+from rich import print
+
+console = Console()
 
 base_url = "https://graphql.anilist.co"
 
@@ -48,10 +55,11 @@ def get_media_id(media_name: str) -> int:
             if option["title"]["english"]
             else option["title"]["romaji"]
         )
-        print(f"{i} - {title} - {option['type']}")
-    print("Choose an option: ", end="")
-    choosed = input()
-    return int(res[int(choosed)]["id"])
+        style = "blue" if option["type"] == "MANGA" else "red"
+        print(f"{i} - {title} - [{style}]{option['type']}[/{style}]")
+    # print("Choose an option: ", end="")
+    choosed = IntPrompt.ask("Choose an option")
+    return int(res[choosed]["id"])
 
 
 def get_data(user_id: int, page: int, media_id: int, save: bool = False):
@@ -80,10 +88,28 @@ def get_data(user_id: int, page: int, media_id: int, save: bool = False):
     print(response.status_code)
     for activity in result:
         activity["createdAtHuman"] = str(datetime.fromtimestamp(activity["createdAt"]))
-    print(json.dumps(result, indent=2))
+    # print(json.dumps(result, indent=2))
+    print_table(result)
     if save:
         with open(f"activity_{user_id}_{page}.json", "w") as f:
             json.dump(result, f)
+
+
+def print_table(dict: dict):
+    table = Table(header_style="bold green")
+    table.add_column("Progress")
+    table.add_column("Title")
+    table.add_column("Date")
+    table.row_styles = ["blue", "red"]
+
+    for activity in dict:
+        table.add_row(
+            activity["progress"],
+            activity["media"]["title"]["romaji"],
+            activity["createdAtHuman"],
+        )
+
+    console.print(table)
 
 
 def main():
